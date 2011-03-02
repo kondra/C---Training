@@ -4,36 +4,36 @@
 
 using namespace std;
 
-class Frac
+class Rational
 {
     int a, b;
 
     int gcd(int a, int b);
     void simplify();
-    bool check(const Frac& f);
+    bool check(const Rational& f);
 public:
-    Frac(int a=0, int b=1) : a(a) , b(b) {
+    Rational(int a=0, int b=1) : a(a) , b(b) {
         if (b == 0)
             return;
         simplify();
     };
 
-    Frac& operator= (const Frac& f);
+    Rational& operator= (const Rational& f);
 
-    Frac& Add(const Frac& f);
-    Frac& Substract(const Frac& f);
-    Frac& Multiply(const Frac& f);
-    Frac& Divide(const Frac& f);
+    Rational& Add(const Rational& f);
+    Rational& Substract(const Rational& f);
+    Rational& Multiply(const Rational& f);
+    Rational& Divide(const Rational& f);
 
-    bool EqualTo(const Frac& f) const;
-    int CompareTo(const Frac& f) const;
+    bool EqualTo(const Rational& f) const;
+    int CompareTo(const Rational& f) const;
 
     bool IsInteger() const;
 
     string ToString() const;
 };
 
-int Frac::gcd (int a, int b)
+int Rational::gcd (int a, int b)
 {
     int c;
     while (b) {
@@ -44,7 +44,7 @@ int Frac::gcd (int a, int b)
     return a;
 }
 
-void Frac::simplify()
+void Rational::simplify()
 {
     int c;
     while ((c = gcd(a, b)) != 1) {
@@ -55,7 +55,7 @@ void Frac::simplify()
     }
 }
 
-bool Frac::check(const Frac& f)
+bool Rational::check(const Rational& f)
 {
     if (b == 0 || f.b == 0) {
         b = 0;
@@ -64,7 +64,7 @@ bool Frac::check(const Frac& f)
     return false;
 }
 
-Frac& Frac::operator= (const Frac& f)
+Rational& Rational::operator= (const Rational& f)
 {
     if (this != &f) {
         a = f.a;
@@ -73,7 +73,7 @@ Frac& Frac::operator= (const Frac& f)
     return *this;
 }
 
-Frac& Frac::Add(const Frac& f)
+Rational& Rational::Add(const Rational& f)
 {
     check(f);
     a = a * f.b + b * f.a;
@@ -82,7 +82,7 @@ Frac& Frac::Add(const Frac& f)
     return *this;
 }
 
-Frac& Frac::Substract(const Frac& f)
+Rational& Rational::Substract(const Rational& f)
 {
     check(f);
     a = a * f.b - b * f.a;
@@ -91,7 +91,7 @@ Frac& Frac::Substract(const Frac& f)
     return *this;
 }
 
-Frac& Frac::Multiply(const Frac& f)
+Rational& Rational::Multiply(const Rational& f)
 {
     check(f);
     a *= f.a;
@@ -100,7 +100,7 @@ Frac& Frac::Multiply(const Frac& f)
     return *this;
 }
 
-Frac& Frac::Divide(const Frac& f)
+Rational& Rational::Divide(const Rational& f)
 {
     check(f);
     a *= f.b;
@@ -109,7 +109,7 @@ Frac& Frac::Divide(const Frac& f)
     return *this;
 }
 
-bool Frac::EqualTo(const Frac& f) const
+bool Rational::EqualTo(const Rational& f) const
 {
     if (f.a == a && f.b == b)
         return true;
@@ -117,7 +117,7 @@ bool Frac::EqualTo(const Frac& f) const
         return false;
 }
 
-int Frac::CompareTo(const Frac& f) const
+int Rational::CompareTo(const Rational& f) const
 {
     int c = a * f.b;
     int d = b * f.a;
@@ -129,14 +129,14 @@ int Frac::CompareTo(const Frac& f) const
     return 0;
 }
 
-bool Frac::IsInteger() const
+bool Rational::IsInteger() const
 {
     if (b == 1)
         return true;
     return false;
 }
 
-string Frac::ToString() const
+string Rational::ToString() const
 {
     stringstream ss;
     if (b == 0) {
@@ -150,12 +150,12 @@ string Frac::ToString() const
     return ss.str();
 }
 
-const Frac a(1,1);
+const Rational a(1,1);
 
 int main()
 {
-    Frac q  = Frac(1, 3), w(1, 4);
-    Frac s = 4;
+    Rational q  = Rational(1, 3), w(1, 4);
+    Rational s = 4;
 //    a.CompareTo(s);
     w = q;
 
@@ -186,3 +186,6 @@ int main()
 
     return 0;
 }
+
+
+//#include <task.rational.cpp>

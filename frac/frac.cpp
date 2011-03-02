@@ -12,7 +12,7 @@ class Frac
     void simplify();
     bool check(const Frac& f);
 public:
-    Frac(int a1=0, int b1=1) : a(a1) , b(b1) {
+    Frac(int a=0, int b=1) : a(a) , b(b) {
         if (b == 0)
             return;
         simplify();
@@ -41,7 +41,7 @@ int Frac::gcd (int a, int b)
         b = a % b;
         a = c;
     }
-    return b;
+    return a;
 }
 
 void Frac::simplify()
@@ -57,7 +57,7 @@ void Frac::simplify()
 
 bool Frac::check(const Frac& f)
 {
-    if (b == 0 || f.b) {
+    if (b == 0 || f.b == 0) {
         b = 0;
         return true;
     }
@@ -156,35 +156,33 @@ int main()
 {
     Frac q  = Frac(1, 3), w(1, 4);
     Frac s = 4;
-    a.CompareTo(s);
+//    a.CompareTo(s);
     w = q;
 
     s.Add(q);
+    cout << s.ToString() << endl;
 
     s.Substract(q);
+    cout << s.ToString() << endl;
+
     s.Multiply(q);
+    cout << s.ToString() << endl;
+
     s.Divide(q);
+    cout << s.ToString() << endl;
 
     s.Add(q).Multiply(w);
+    cout << s.ToString() << endl;
 
     s.EqualTo(w);
     s.CompareTo(w);
 
     s.IsInteger();
 
-    string str;
-    Frac a(-1, 1), b(1, 1);
-    str = b.ToString();
-    cout << str << endl;
-    str = a.ToString();
-    cout << str << endl;
+    cout << s.ToString() << endl;
+//    cout << q.ToString() << endl;
+//    cout << w.ToString() << endl;
 
-    a.Multiply(b);
-    str = a.ToString();
-    cout << str << endl;
-
-    Frac arr[10];
-    arr[0] = a;
 
     return 0;
 }

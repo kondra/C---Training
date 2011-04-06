@@ -184,12 +184,15 @@ int main(void)
 //    c(1, 0) = b;
 
 //    Matrix v(1, 1);
-    Matrix v = a(0, 0) + b;
-    v(4, 0) += b;
-    v(7, 7) += b;
-    v(7, 7) += b;
+//    Matrix v = a(0, 0) + b;
 
-    cout << v;
+    cout << a;
+    a(0, 0) += b;
+//    v(4, 0) += b;
+//    v(7, 7) += b;
+//    v(7, 7) += b;
+
+    cout << a;
 
     return 0;
 }

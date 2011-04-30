@@ -65,14 +65,16 @@ istream& operator>>(istream& is, Grammar& g) {
 
 class Automaton
 {
+    typedef map<char, set<unsigned int> > NodeInfo;
+    typedef vector<NodeInfo> Transitions;
+
     string alphabet;
     unsigned int state_num;
     unsigned int final_state_num;
     unsigned int start_state;
 
     set<unsigned int> final_states;
-    multimap<pair<unsigned int, char>, unsigned int> nd_transitions;
-    map<pair<unsigned int, char>, unsigned int> transitions;
+    Transitions transitions;
 public:
     Automaton() : state_num(0), final_state_num(0), start_state(0) {
     }
@@ -85,7 +87,7 @@ public:
 
 ostream& operator<<(ostream& os, Automaton& a) {
     set<unsigned int>::const_iterator it;
-    map<pair<unsigned int, char>, unsigned int>::const_iterator m_it;
+    Automaton::NodeInfo::iterator n_it;
 
     unsigned int i, j;
 
@@ -94,10 +96,13 @@ ostream& operator<<(ostream& os, Automaton& a) {
     for (it = a.final_states.begin(); it != a.final_states.end(); ++it)
         os << *it + 1 << ' ';
     os << '\n';
-    for (i = 0; i < a.state_num; i++) {
+    for (i = 0; i < a.transitions.size(); i++) {
         for (j = 0; j < a.alphabet.size(); j++) {
-            if ((m_it = a.transitions.find(make_pair(i, a.alphabet[j]))) != a.transitions.end()) {
-                os << m_it->second + 1 << ' ';
+            if ((n_it = a.transitions[i].find(a.alphabet[j])) != a.transitions[i].end()) {
+                if (n_it->second.size() != 1) {
+                    os << "FFFUUUU: node " << i << " symbol " << a.alphabet[j] << endl;;
+                }
+                os << *(n_it->second.begin()) + 1 << ' ';
             } else {
                 os << a.state_num << ' ';
             }
@@ -108,13 +113,13 @@ ostream& operator<<(ostream& os, Automaton& a) {
 }
 
 void Automaton::convert() {
+    Transitions dfa_transitions;
+    NodeInfo::iterator it;
     queue<unsigned int> new_states;
     set<unsigned int> old_states;
-    pair<multimap<pair<unsigned int, char>, unsigned int>::const_iterator,
-        multimap<pair<unsigned int, char>, unsigned int>::const_iterator> range;
-    multimap<pair<unsigned int, char>, unsigned int>::const_iterator it;
 
-    unsigned int cur_state, i, state_cnt;
+    unsigned int i;
+    unsigned int cur_state, state_cnt;
 
     new_states.push(start_state);
 
@@ -125,12 +130,9 @@ void Automaton::convert() {
             continue;
 
         for (i = 0; i < alphabet.size(); i++) {
-//            range = nd_transitions.equal_range(make_pair(cur_state, alphabet[i]));
-//            if (range.first == range.last)
-//                continue;
-            new_state.push(state_cnt);
-            transitions.insert(make_pair(make_pair(cur_state, alphabet[i]), state_cnt));
-            state_cnt++;
+            if ((it = transitions[cur_state].find(alphabet[i])) != transitions[cur_state].end()) {
+                dfa_transitions.push_back(
+            }
         }
 
         old_states.insert(cur_state);
@@ -142,15 +144,16 @@ Automaton::Automaton(Grammar& g) {
     start_state = 0;
     final_state_num = 1;
     final_states.insert(g.non_terminals['S']);
+    transitions.resize(state_num);
 
     for (set<char>::const_iterator it = g.terminals.begin(); it != g.terminals.end(); it++)
         alphabet.push_back(*it);
 
     for (vector<pair<string, string> >::const_iterator it = g.rules.begin(); it != g.rules.end(); it++) {
         if (it->second.length() == 1) {
-            nd_transitions.insert(make_pair(make_pair(start_state, it->second[0]), g.non_terminals[it->first[0]]));
+            transitions[start_state][it->second[0]].insert(g.non_terminals[it->first[0]]);
         } else {
-            nd_transitions.insert(make_pair(make_pair(g.non_terminals[it->second[0]], it->second[1]), g.non_terminals[it->first[0]]));
+            transitions[g.non_terminals[it->second[0]]][it->second[1]].insert(g.non_terminals[it->first[0]]);
         }
     }
 }

@@ -55,16 +55,16 @@ public:
         frozen = true;
     }
 
-		bool hasFood() const {
+    bool hasFood() const {
         return hFood;
     }
-		bool isFrozen() const {
+    bool isFrozen() const {
         return frozen;
     }
-		Point getPoint() const {
+    Point getPoint() const {
         return p;
     }
-		int getTeamId() const {
+    int getTeamId() const {
         return teamId;
     }
 };

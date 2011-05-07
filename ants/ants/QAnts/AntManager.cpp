@@ -1,15 +1,30 @@
 #include "AntManager.hpp"
 
+AntSensor Cell::toAntSensor(int tId) {
+    AntSensor tmp;
+
+    bool fr, en;
+    fr = teamId == tId ? true : false;
+    en = !fr;
+
+    tmp.smell = smell;
+    tmp.smellIntensity = smellIntensity;
+    if (isAnt) {
+        tmp.isFriend = fr;
+        tmp.isEnemy = en;
+    }
+    if (isHill) {
+        tmp.isMyHill = fr;
+        tmp.isEnemyHill = en;
+    }
+    tmp.isFood = isFood;
+    tmp.isWall = isWall;
+
+    return tmp;
+}
+
 AntManager::AntManager(int height, int width, int teamCount, int maxAntCountPerTeam) : height(height), width(width), teamCount(teamCount), maxAntCountPerTeam(maxAntCountPerTeam) {
     int i, j;
-    //create logic ants
-    ants.resize(teamCount);
-    for (i = 0; i < teamCount; i++) {
-        brains.push_back(antlogic::IAntLogic::GetAntLogic(i));
-        for (j = 0; j < maxAntCountPerTeam; j++) {
-            ants[i].push_back(new LAnt(i));
-        }
-    }
     //resize field
     for (i = 0; i < height + 2; i++) {
         for (j = 0; j < width + 2; j++) {
@@ -49,6 +64,14 @@ AntManager::AntManager(int height, int width, int teamCount, int maxAntCountPerT
         hillPos[i] = p1;
         field[p1].isHill = true;
         field[p1].teamId = i;
+    }
+    //create ants
+    ants.resize(teamCount);
+    for (i = 0; i < teamCount; i++) {
+        brains.push_back(antlogic::IAntLogic::GetAntLogic(i));
+        for (j = 0; j < maxAntCountPerTeam; j++) {
+            ants[i].push_back(new MyAnt(hillPos[i], i));
+        }
     }
 }
 

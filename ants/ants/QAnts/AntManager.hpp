@@ -10,21 +10,22 @@
 #include <cstring>
 
 using antgui::Point;
+using antlogic::AntSensor;
+
 using namespace std;
 
-class LAnt : public antlogic::Ant {
+class MyAnt : public antlogic::Ant, public antgui::Ant {
     char *memory;
     bool hFood;
     int teamId;
+    bool frozen;
+    Point p;
 public:
-    LAnt(int teamId) : hFood(false), teamId(teamId) {
-        int i;
+    MyAnt(Point& p, int teamId) : memory(NULL), hFood(false), teamId(teamId), frozen(false), p(p) {
         memory = new char[antlogic::MAX_MEMORY];
-        for (i = 0; i < antlogic::MAX_MEMORY; i++) {
-            memory[i] = 0;
-        }
+        memset(memory, 0, antlogic::MAX_MEMORY);
     }
-    ~LAnt() {
+    ~MyAnt() {
         delete memory;
     }
 
@@ -32,41 +33,30 @@ public:
         hFood = food;
     }
 
-    char *getMemory() const {
+    //from Logic
+    virtual char *getMemory() const {
         return memory;
     }
-    bool hasFood() const {
+    virtual bool hasFood() const {
         return hFood;
     }
-    int getTeamId() const {
+    virtual int getTeamId() const {
         return teamId;
     }
-};
 
-class GAnt : public antgui::Ant {
-    bool hFood;
-    bool frozen;
-    Point p;
-    int teamId;
-public:
-    GAnt(Point& p, int teamId) : hFood(false), frozen(false), p(p), teamId(teamId) {}
+    //from Gui
+    virtual bool isFrozen() const {
+        return frozen;
+    }
+    virtual Point getPoint() const {
+        return p;
+    }
 
+    //gui specific
     void freeze() {
         frozen = true;
     }
 
-    bool hasFood() const {
-        return hFood;
-    }
-    bool isFrozen() const {
-        return frozen;
-    }
-    Point getPoint() const {
-        return p;
-    }
-    int getTeamId() const {
-        return teamId;
-    }
 };
 
 struct Cell {
@@ -78,6 +68,8 @@ struct Cell {
     bool isHill;
     bool isFood;
     bool isWall;
+
+    AntSensor toAntSensor(int tId);
 
     Cell() : smell(0), smellIntensity(0), teamId(-1) {
         isAnt = isHill = isFood = isWall = false;
@@ -91,11 +83,10 @@ class AntManager {
 
     //ants
     vector<antlogic::IAntLogic*> brains;
-    vector<vector<antlogic::Ant*> > l_ants;
+    vector<vector<MyAnt*> > ants;
 
     //field
     map<Point, Cell> field;
-    vector<vector<antgui::Ant*> > g_ants;
     Point hillPos[4];
 
     antgui::IAntGui *gui;

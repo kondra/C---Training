@@ -3,7 +3,6 @@
 #include <string.h>
 #include <ctype.h>
 
-
 struct Info {
     int val;
     int degree;
@@ -30,13 +29,13 @@ char var = '\0';
 [sS][iI][nN]         { return SIN;        }
 [cC][oO][sS]         { return COS;        }
 [tT][nN]             { return TN;         }
-[0-9]*               { if (strlen(yytext) > 1 && yytext[0] == '0') yyerror("leading zero\n");
+[0-9]*               { if (strlen(yytext) > 1 && yytext[0] == '0') yyerror("leading zero");
                        yylval.inf.val = atoi(yytext); return NUM; 
                      }
 [a-zA-Z]             { if (var == '\0') var = tolower(yytext[0]);
-                       else if (tolower(yytext[0]) != var) yyerror("more than one variable\n");
+                       else if (tolower(yytext[0]) != var) yyerror("more than one variable");
                        return VAR; }
-\n                   { if (var == '\0') yyerror("no variables\n");
+[\n\0]               { if (var == '\0') yyerror("no variables");
                        return END; }
 [ \t]                {}
 %%

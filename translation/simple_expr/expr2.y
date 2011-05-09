@@ -33,17 +33,20 @@ int max(int x, int y) {
 %type <inf> exp
 %type <inf> func
 %type <inf> varchain
-
+%type <inf> add_exp
+%type <inf> mul_exp
+%type <inf> unary_exp
+%type <inf> primary
 
 %token NUM LPAREN RPAREN VAR END EQ
 %token LOG EXP SIN COS TN 
-
 %left PLUS MINUS
 %left TIMES DIV
 %left NEG
 %right POW
 
 %%
+
 equ: exp EQ exp END          { printf("degree: %d\n", max($1.degree, $3.degree));
                                printf("val: %d - %d\n", $1.val, $3.val);
                              //if ($.degree1 == 1) type |= LINEAR;
@@ -59,24 +62,40 @@ equ: exp EQ exp END          { printf("degree: %d\n", max($1.degree, $3.degree))
                              exit(0); }
                              ;
 
-exp: exp PLUS exp          { $$.val = $1.val + $3.val;
-                             $$.degree = max($1.degree, $3.degree);
-                           }
-   | exp MINUS exp         { $$.val = $1.val - $3.val; 
-                             $$.degree = max($1.degree, $3.degree);
-                           }
-   | exp TIMES exp         { $$.val = $1.val * $3.val; 
-                             $$.degree = $1.degree + $3.degree; }
-   | exp DIV exp           { if ($3.degree != 0) type = ANOTHER;
-                             else {
-                                if ($3.val == 0) yyerror("division by zero\n"); 
-                                $$.val = $1.val / $3.val; 
-                             }
-                           }
-   | exp POW exp           { if ($3.degree != 0) type = ANOTHER;
+exp: add_exp
+   | exp POW add_exp       { if ($3.degree != 0) type = ANOTHER;
                              else $$.val = (int)pow($1.val, $3.val);
                            }
-   | LPAREN exp RPAREN     { $$.val = $2.val; 
+;
+
+add_exp: mul_exp
+       | add_exp PLUS mul_exp       { $$.val = $1.val + $3.val;
+                                     $$.degree = max($1.degree, $3.degree);
+                                    }
+       | add_exp MINUS mul_exp      { $$.val = $1.val - $3.val; 
+                                     $$.degree = max($1.degree, $3.degree);
+                                    }
+;
+
+mul_exp: unary_exp
+       | mul_exp TIMES unary_exp         { $$.val = $1.val * $3.val; 
+                                           $$.degree = $1.degree + $3.degree; }
+       | mul_exp DIV unary_exp           { if ($3.degree != 0) type = ANOTHER;
+                                           else {
+                                              if ($3.val == 0) yyerror("division by zero\n"); 
+                                              $$.val = $1.val / $3.val; 
+                                           }
+                                         }
+;
+
+unary_exp: primary
+         | MINUS primary %prec NEG        { $$.val = -$2.val;
+                                            $$.degree = $2.degree;
+                                          }
+;
+
+primary:
+     LPAREN exp RPAREN     { $$.val = $2.val; 
                              $$.degree = $2.degree;
                            }
    | func                  { $$.val = $1.val; 
@@ -91,10 +110,7 @@ exp: exp PLUS exp          { $$.val = $1.val + $3.val;
    | varchain func         { $$.degree = $1.degree; }
    | varchain              { $$.val = 0;
                              $$.degree = $1.degree; }
-   | MINUS exp %prec NEG   { $$.val = $2.val;
-                             $$.degree = $2.degree;
-                           }
-                           ;
+                             ;
 
 
 varchain: VAR varchain     { $$.degree = $2.degree + 1; }
@@ -116,7 +132,7 @@ func: LOG LPAREN exp RPAREN { if ($3.val > 0) $$.val = (int)log($3.val);
     | TN  LPAREN exp RPAREN { $$.val = (int)tan($3.val); 
                               if ($3.degree != 0) type |= TRIGONOMETRIC;
                             }
-                            ;
+;
 
 %%
 

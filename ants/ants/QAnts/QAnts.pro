@@ -17,13 +17,7 @@ HEADERS += AntGuiImpl.hpp \
            IAntLogic.hpp \
            IAntLogicImpl.hpp \
            main_window.hpp \
-           Ants/ant.h \
-           Ants/AntSensor.h \
-           Ants/Cell.h \
-           Ants/AntManager.hpp \
-           Ants/common.h \
-           Ants/field.h \
-           Ants/hill.h
+           AntManager.hpp
 FORMS += MainForm.ui
 SOURCES += AntGuiImpl.cpp \
            AntWidget.cpp \
@@ -32,10 +26,4 @@ SOURCES += AntGuiImpl.cpp \
            IAntLogicImpl.cpp \
            main.cpp \
            main_window.cpp \
-           Ants/ant.cpp \
-           Ants/ants_main.cpp \
-           Ants/AntSensor.cpp \
-           Ants/Cell.cpp \
-           Ants/AntManager.cpp \
-           Ants/field.cpp \
-           Ants/hill.cpp \
+           AntManager.cpp

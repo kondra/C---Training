@@ -15,13 +15,7 @@ HEADERS += AntGuiImpl.hpp \
            QAnts/IAntLogic.hpp \
            QAnts/IAntLogicImpl.hpp \
            QAnts/main_window.hpp \
-           QAnts/Ants/ant.h \
-           QAnts/Ants/AntSensor.h \
-           QAnts/Ants/Cell.h \
-           QAnts/Ants/CManager.hpp \
-           QAnts/Ants/common.h \
-           QAnts/Ants/field.h \
-           QAnts/Ants/hill.h
+           QAnts/AntManager.hpp
 FORMS += QAnts/MainForm.ui
 SOURCES += AntGuiImpl.cpp \
            QAnts/AntGuiImpl.cpp \
@@ -31,11 +25,4 @@ SOURCES += AntGuiImpl.cpp \
            QAnts/IAntLogicImpl.cpp \
            QAnts/main.cpp \
            QAnts/main_window.cpp \
-           QAnts/Ants/ant.cpp \
-           QAnts/Ants/ants_main.cpp \
-           QAnts/Ants/AntSensor.cpp \
-           QAnts/Ants/Cell.cpp \
-           QAnts/Ants/CManager.cpp \
-           QAnts/Ants/field.cpp \
-           QAnts/Ants/hill.cpp \
-           QAnts/AntsAlgo/TEAM47.cpp
+           QAnts/AntManager.cpp

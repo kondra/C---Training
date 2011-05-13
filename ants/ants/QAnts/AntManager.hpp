@@ -71,8 +71,12 @@ struct Cell {
 
     AntSensor toAntSensor(int tId);
 
+    MyAnt *ant;
+    //Food *food;
+
     Cell() : smell(0), smellIntensity(0), teamId(-1) {
         isAnt = isHill = isFood = isWall = false;
+//        ant = food = NULL;
     }
 };
 
@@ -90,6 +94,9 @@ class AntManager {
     Point hillPos[4];
 
     antgui::IAntGui *gui;
+
+    void setFood(Point& p);
+    void removeFood(Point& p);
 public:
     void step(int num);
     void setGui(antgui::IAntGui *gui);

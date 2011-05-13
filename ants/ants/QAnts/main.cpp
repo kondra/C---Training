@@ -1,6 +1,6 @@
 #include <QApplication>
 #include <QtCore/QCoreApplication>
-#include <QtTest/QTest>
+//#include <QtTest/QTest>
 #include "main_window.hpp"
 #include <iostream>
 

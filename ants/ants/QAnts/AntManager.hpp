@@ -10,18 +10,31 @@
 #include <cstring>
 
 using antgui::Point;
+using antgui::Food;
 using antlogic::AntSensor;
+using antlogic::AntAction;
+using antlogic::AntActionType;
 
 using namespace std;
 
 class MyAnt : public antlogic::Ant, public antgui::Ant {
     char *memory;
-    bool hFood;
+
     int teamId;
-    bool frozen;
     Point p;
+
+    bool drawn; //internal use only
+    const int id;
+
+    //food
+    bool hFood; //have to set it
+    Food *food;
+
+    //freeze
+    int count;
+    bool frozen; //have to set it
 public:
-    MyAnt(Point& p, int teamId) : memory(NULL), hFood(false), teamId(teamId), frozen(false), p(p) {
+    MyAnt(Point& p, int teamId, int id) : memory(NULL), hFood(false), teamId(teamId), frozen(false), p(p), drawn(false), id(id) {
         memory = new char[antlogic::MAX_MEMORY];
         memset(memory, 0, antlogic::MAX_MEMORY);
     }
@@ -29,10 +42,43 @@ public:
         delete memory;
     }
 
-    void setFood(bool food) {
-        hFood = food;
+    bool isDrawn() const {
+        return drawn;
+    }
+    void Drawn() {
+        drawn = true;
     }
 
+    int getId() const {
+        return id;
+    }
+
+    //food related
+    void setFood(Food *f) {
+        food = f;
+        hFood = static_cast<bool>(f);
+    }
+    Food *getFood() const {
+        return food;
+    }
+
+    //freezing functions
+    void freeze() {
+        frozen = true;
+        count = 8;
+    }
+    int get_count() const {
+        return count;
+    }
+    void dec_count() {
+        count--;
+    }
+    //
+    void setPoint(Point p1) {
+        p = p1;
+    }
+
+    //instance
     //from Logic
     virtual char *getMemory() const {
         return memory;
@@ -51,12 +97,6 @@ public:
     virtual Point getPoint() const {
         return p;
     }
-
-    //gui specific
-    void freeze() {
-        frozen = true;
-    }
-
 };
 
 struct Cell {
@@ -69,14 +109,19 @@ struct Cell {
     bool isFood;
     bool isWall;
 
-    AntSensor toAntSensor(int tId);
+    //MyAnt *ant;
+    map<int, MyAnt*> ants;
+    Food *food;
 
-    MyAnt *ant;
-    //Food *food;
+    //methods
+    AntSensor toAntSensor(int tId);
 
     Cell() : smell(0), smellIntensity(0), teamId(-1) {
         isAnt = isHill = isFood = isWall = false;
-//        ant = food = NULL;
+        food = 0;
+    }
+    ~Cell() {
+        delete food;
     }
 };
 
@@ -95,11 +140,17 @@ class AntManager {
 
     antgui::IAntGui *gui;
 
-    void setFood(Point& p);
-    void removeFood(Point& p);
+    struct sens {
+        AntSensor sensors[3][3];
+    };
+
+    void processAction(AntAction& action, MyAnt *ant);
+    void processMovement(Point p, Point p1, MyAnt *ant);
+    sens getSensors(Point p, int tId);
+    void redraw();
 public:
     void step(int num);
-    void setGui(antgui::IAntGui *gui);
+    void setGui(antgui::IAntGui *gui_);
     void setFoodGeneretor(antgui::food_iterator *it);
 
     AntManager(int height, int width, int teamCount, int maxAntCountPerTeam=50);

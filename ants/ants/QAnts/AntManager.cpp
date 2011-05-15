@@ -150,17 +150,12 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
 }
 
 void AntManager::processMovement(Point p, Point p1, MyAnt *ant) {
-    //old
+    if (field[p1].isWall)
+        return;
     field[p].ants.erase(ant->getId());
     if (field[p].ants.size() == 0)
         field[p].isAnt = false;
 
-    //new
-    //cout << p1.x << " " << p1.y << endl;
-    if (field.find(p1) == field.end()) {
-        cout << "FUUUUUU" << endl;
-        exit(0);
-    }
     field[p1].ants[ant->getId()] = ant;
     field[p1].isAnt = true;
     ant->setPoint(p1);
@@ -170,76 +165,34 @@ AntManager::sens AntManager::getSensors(Point p, int tId) {
     sens s;
     Point p1(p);
 
-    cout << p.x << endl << p.y << endl;
-    cout << "iiii\n";
-
     p1.x = p.x - 1;
     p1.y = p.y + 1;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "1FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[0][0] = field[p1].toAntSensor(tId);
+
     p1.y = p.y;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "2FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[1][0] = field[p1].toAntSensor(tId);
+
     p1.y = p.y - 1;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "3FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[2][0] = field[p1].toAntSensor(tId);
 
     p1.x = p.x;
     p1.y = p.y + 1;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "4FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[0][1] = field[p1].toAntSensor(tId);
+
     p1.y = p.y;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "5FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[1][1] = field[p1].toAntSensor(tId);
+
     p1.y = p.y - 1;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "6FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[2][1] = field[p1].toAntSensor(tId);
 
     p1.x = p.x + 1;
     p1.y = p.y + 1;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "7FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[0][2] = field[p1].toAntSensor(tId);
+
     p1.y = p.y;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "8FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[1][2] = field[p1].toAntSensor(tId);
+    
     p1.y = p.y - 1;
-    if (field.find(p1) == field.end()) {
-        cout << p1.x << endl << p1.y << endl;
-        cout << "9FUUUUUU" << endl;
-        exit(0);
-    }
     s.sensors[2][2] = field[p1].toAntSensor(tId);
 
     return s;
@@ -256,15 +209,10 @@ void AntManager::redraw() {
             map<int, MyAnt*>::iterator it1 = it->second.ants.begin();
             while (it1 != it->second.ants.end()) {
                 gui->SetAnt(it1->second);
-
-//                cout << "x: " << it1->second->getPoint().x;
-//                cout << " y: " << it1->second->getPoint().y;
-//                cout << endl;
-
                 it1++;
             }
         } else if (it->second.isFood) {
-//            gui->SetFood(it->second.food);
+            gui->SetFood(it->second.food);
         }
         it++;
     }

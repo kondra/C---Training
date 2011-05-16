@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <map>
+#include <list>
 #include <cstring>
 
 using antgui::Point;
@@ -19,17 +20,13 @@ using namespace std;
 
 class MyAnt : public antlogic::Ant, public antgui::Ant {
     char *memory;
-
     int teamId;
     Point p;
-
     bool drawn; //internal use only
     const int id;
-
     //food
     bool hFood; //have to set it
     Food *food;
-
     //freeze
     int count;
     bool frozen; //have to set it
@@ -67,11 +64,15 @@ public:
         frozen = true;
         count = 8;
     }
-    int get_count() const {
+    int getCount() const {
         return count;
     }
-    void dec_count() {
-        count--;
+    void decCount() {
+        if (count > 0) {
+            count--;
+            if (count == 0)
+                frozen = false;
+        }
     }
     //
     void setPoint(Point p1) {
@@ -109,19 +110,19 @@ struct Cell {
     bool isFood;
     bool isWall;
 
-    //MyAnt *ant;
     map<int, MyAnt*> ants;
-    Food *food;
+    list<Food*> food;
 
     //methods
     AntSensor toAntSensor(int tId);
 
-    Cell() : smell(0), smellIntensity(0), teamId(-1) {
-        isAnt = isHill = isFood = isWall = false;
-        food = 0;
+    Cell() : smell(0), smellIntensity(0), teamId(-1), isAnt(false), isHill(false), isFood(false), isWall(false) {
     }
     ~Cell() {
-        delete food;
+        list<Food*>::iterator it = food.begin();
+        while (it != food.end()) {
+            delete *it;
+        }
     }
 };
 
@@ -129,6 +130,8 @@ class AntManager {
     int height, width;
     int teamCount;
     int maxAntCountPerTeam;
+
+    int score[4];
 
     //ants
     vector<antlogic::IAntLogic*> brains;
@@ -146,6 +149,7 @@ class AntManager {
 
     void processAction(AntAction& action, MyAnt *ant);
     void processMovement(Point p, Point p1, MyAnt *ant);
+    void processBiting(Point p1, MyAnt *ant);
     sens getSensors(Point p, int tId);
     void redraw();
 public:
@@ -153,7 +157,7 @@ public:
     void setGui(antgui::IAntGui *gui_);
     void setFoodGeneretor(antgui::food_iterator *it);
 
-    AntManager(int height, int width, int teamCount, int maxAntCountPerTeam=50);
+    AntManager(int height, int width, int teamCount, int maxAntCountPerTeam=20);
 };
 
 #endif

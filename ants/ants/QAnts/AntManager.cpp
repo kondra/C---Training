@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <unistd.h>
 
 AntSensor Cell::toAntSensor(int tId) {
     AntSensor tmp;
@@ -28,6 +29,8 @@ AntSensor Cell::toAntSensor(int tId) {
 
 AntManager::AntManager(int height, int width, int teamCount, int maxAntCountPerTeam) : height(height), width(width), teamCount(teamCount), maxAntCountPerTeam(maxAntCountPerTeam) {
     int i, j;
+    for (i = 0; i < 4; i++)
+        score[i] = 0;
     //resize field
     for (i = 0; i < height + 2; i++) {
         for (j = 0; j < width + 2; j++) {
@@ -86,9 +89,6 @@ void AntManager::step(int num) {
 
     int i, j;
 
-//    static int cnt = 0;
-//    cnt++;
-
     for (i = 0; i < teamCount; i++) {
         for (j = 0; j < maxAntCountPerTeam; j++) {
             if (!ants[i][j]->isDrawn()) {
@@ -97,56 +97,98 @@ void AntManager::step(int num) {
                 ants[i][j]->Drawn();
                 break;
             } else {
-                s = getSensors(ants[i][j]->getPoint(), ants[i][j]->getTeamId());
-                action = brains[i]->GetAction(*ants[i][j], s.sensors);
-
-                //action processing
-                processAction(action, ants[i][j]);
-                //cout << cnt << " processed\n";
+                if (!ants[i][j]->isFrozen()) {
+                    s = getSensors(ants[i][j]->getPoint(), ants[i][j]->getTeamId());
+                    action = brains[i]->GetAction(*ants[i][j], s.sensors);
+                    processAction(action, ants[i][j]);
+                }
             }
         }
     }
-
     redraw();
+    for (i = 0; i < teamCount; i++) {
+        gui->SetTeamScore(i, score[i]);
+        cout << "team: " << i << "; score: " << score[i] << "\n";
+    }
+    usleep(100000);
 }
 
 void AntManager::processAction(AntAction& action, MyAnt *ant) {
     Point p = ant->getPoint();
+    Point p1 = p;
 
     if (action.putSmell) {
         field[p].smell = action.smell;
         field[p].smellIntensity = 101;
+        cout << "smell\n";
     }
 
     if (action.actionType == antlogic::GET && !ant->hasFood()) {
-        ant->setFood(field[p].food);
-        field[p].isFood = false;
-        field[p].food = 0;
+        ant->setFood(*field[p].food.begin());
+        field[p].food.pop_front();
+        if (field[p].food.size() == 0)
+            field[p].isFood = false;
     } else if (action.actionType == antlogic::PUT && ant->hasFood()) {
-        field[p].isFood = true;
-        field[p].food = ant->getFood();
+        if (field[p].isHill) {
+            ant->getFood()->~Food();
+            score[field[p].teamId]++;
+        } else {
+            field[p].isFood = true;
+            field[p].food.push_back(ant->getFood());
+        }
         ant->setFood(0);
     } else if (action.actionType == antlogic::MOVE_UP) {
-        cout << "id: " << ant->getId() << "; teamId: " << ant->getTeamId() << "; up\n";
-        Point p1 = p;
         p1.y++;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::MOVE_DOWN) {
-        cout << "id: " << ant->getId() << "; teamId: " << ant->getTeamId() << "; down\n";
-        Point p1 = p;
         p1.y--;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::MOVE_RIGHT) {
-        cout << "id: " << ant->getId() << "; teamId: " << ant->getTeamId() << "; right\n";
-        Point p1 = p;
         p1.x++;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::MOVE_LEFT) {
-        cout << "id: " << ant->getId() << "; teamId: " << ant->getTeamId() << "; left\n";
-        Point p1 = p;
         p1.x--;
         processMovement(p, p1, ant);
+    } else if (action.actionType == antlogic::BITE_UP) {
+        cout << "bite up\n";
+        p1.y++;
+        processBiting(p1, ant);
+    } else if (action.actionType == antlogic::BITE_DOWN) {
+        cout << "bite down\n";
+        p1.y--;
+        processBiting(p1, ant);
+    } else if (action.actionType == antlogic::BITE_RIGHT) {
+        cout << "bite right\n";
+        p1.x++;
+        processBiting(p1, ant);
+    } else if (action.actionType == antlogic::BITE_LEFT) {
+        cout << "bite left\n";
+        p1.x--;
+        processBiting(p1, ant);
     } 
+}
+
+void AntManager::processBiting(Point p1, MyAnt *ant) {
+    if (field[p1].isWall)
+        return;
+    map<int, MyAnt*>::iterator it = field[p1].ants.begin(), pos = field[p1].ants.end();
+    int min = 10, cnt;
+    while (it != field[p1].ants.end()) {
+        cnt = it->second->getCount();
+        if (cnt < min) {
+            min = cnt;
+            pos = it;
+        }
+        it++;
+    }
+    if (pos != field[p1].ants.end()) {
+        pos->second->freeze();
+        if (pos->second->hasFood()) {
+            field[p1].food.push_back(pos->second->getFood());
+            field[p1].isFood = true;
+            pos->second->setFood(0);
+        }
+    }
 }
 
 void AntManager::processMovement(Point p, Point p1, MyAnt *ant) {
@@ -168,30 +210,24 @@ AntManager::sens AntManager::getSensors(Point p, int tId) {
     p1.x = p.x - 1;
     p1.y = p.y + 1;
     s.sensors[0][0] = field[p1].toAntSensor(tId);
-
     p1.y = p.y;
     s.sensors[1][0] = field[p1].toAntSensor(tId);
-
     p1.y = p.y - 1;
     s.sensors[2][0] = field[p1].toAntSensor(tId);
 
     p1.x = p.x;
     p1.y = p.y + 1;
     s.sensors[0][1] = field[p1].toAntSensor(tId);
-
     p1.y = p.y;
     s.sensors[1][1] = field[p1].toAntSensor(tId);
-
     p1.y = p.y - 1;
     s.sensors[2][1] = field[p1].toAntSensor(tId);
 
     p1.x = p.x + 1;
     p1.y = p.y + 1;
     s.sensors[0][2] = field[p1].toAntSensor(tId);
-
     p1.y = p.y;
     s.sensors[1][2] = field[p1].toAntSensor(tId);
-    
     p1.y = p.y - 1;
     s.sensors[2][2] = field[p1].toAntSensor(tId);
 
@@ -209,10 +245,15 @@ void AntManager::redraw() {
             map<int, MyAnt*>::iterator it1 = it->second.ants.begin();
             while (it1 != it->second.ants.end()) {
                 gui->SetAnt(it1->second);
+                it1->second->decCount();
                 it1++;
             }
         } else if (it->second.isFood) {
-            gui->SetFood(it->second.food);
+            list<Food*>::iterator ft = it->second.food.begin();
+            while (ft != it->second.food.end()) {
+                gui->SetFood(*ft);
+                ft++;
+            }
         }
         it++;
     }
@@ -232,7 +273,7 @@ void AntManager::setFoodGeneretor(antgui::food_iterator *it) {
         f = new antgui::ConcreteFood(*cur);
         p = f->getPoint();
 
-        field[p].food = f;
+        field[p].food.push_back(f);
         field[p].isFood = true;
 
         cur++;

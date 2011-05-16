@@ -149,7 +149,7 @@ class AntManager {
 
     void processAction(AntAction& action, MyAnt *ant);
     void processMovement(Point p, Point p1, MyAnt *ant);
-    void processBiting(Point p1, MyAnt *ant);
+    void processBiting(Point p1);
     sens getSensors(Point p, int tId);
     void redraw();
 public:

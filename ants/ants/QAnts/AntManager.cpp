@@ -152,23 +152,23 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
     } else if (action.actionType == antlogic::BITE_UP) {
         cout << "bite up\n";
         p1.y++;
-        processBiting(p1, ant);
+        processBiting(p1);
     } else if (action.actionType == antlogic::BITE_DOWN) {
         cout << "bite down\n";
         p1.y--;
-        processBiting(p1, ant);
+        processBiting(p1);
     } else if (action.actionType == antlogic::BITE_RIGHT) {
         cout << "bite right\n";
         p1.x++;
-        processBiting(p1, ant);
+        processBiting(p1);
     } else if (action.actionType == antlogic::BITE_LEFT) {
         cout << "bite left\n";
         p1.x--;
-        processBiting(p1, ant);
+        processBiting(p1);
     } 
 }
 
-void AntManager::processBiting(Point p1, MyAnt *ant) {
+void AntManager::processBiting(Point p1) {
     if (field[p1].isWall)
         return;
     map<int, MyAnt*>::iterator it = field[p1].ants.begin(), pos = field[p1].ants.end();

@@ -126,16 +126,15 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
     if (action.actionType == antlogic::GET && !ant->hasFood()) {
         ant->setFood(*field[p].food.begin());
         field[p].food.pop_front();
+        if (field[p].isHill)
+            score[field[p].teamId]--;
         if (field[p].food.size() == 0)
             field[p].isFood = false;
     } else if (action.actionType == antlogic::PUT && ant->hasFood()) {
-        if (field[p].isHill) {
-            ant->getFood()->~Food();
+        if (field[p].isHill)
             score[field[p].teamId]++;
-        } else {
-            field[p].isFood = true;
-            field[p].food.push_back(ant->getFood());
-        }
+        field[p].isFood = true;
+        field[p].food.push_back(ant->getFood());
         ant->setFood(0);
     } else if (action.actionType == antlogic::MOVE_UP) {
         p1.y++;

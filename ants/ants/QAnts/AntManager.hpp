@@ -11,7 +11,6 @@
 #include <cstring>
 
 using antgui::Point;
-using antgui::Food;
 using antlogic::AntSensor;
 using antlogic::AntAction;
 using antlogic::AntActionType;
@@ -26,7 +25,6 @@ class MyAnt : public antlogic::Ant, public antgui::Ant {
     const int id;
     //food
     bool hFood; //have to set it
-    Food *food;
     //freeze
     int count;
     bool frozen; //have to set it
@@ -51,12 +49,8 @@ public:
     }
 
     //food related
-    void setFood(Food *f) {
-        food = f;
-        hFood = static_cast<bool>(f);
-    }
-    Food *getFood() const {
-        return food;
+    void setFood(bool f) {
+        hFood = f;
     }
 
     //freezing functions
@@ -111,18 +105,35 @@ struct Cell {
     bool isWall;
 
     map<int, MyAnt*> ants;
-    list<Food*> food;
+    int foodCnt;
 
     //methods
     AntSensor toAntSensor(int tId);
 
-    Cell() : smell(0), smellIntensity(0), teamId(-1), isAnt(false), isHill(false), isFood(false), isWall(false) {
+    Cell() : smell(0), smellIntensity(0), teamId(-1), isAnt(false), isHill(false), isFood(false), isWall(false), foodCnt(0) {
     }
     ~Cell() {
-        list<Food*>::iterator it = food.begin();
-        while (it != food.end()) {
-            delete *it;
-        }
+    }
+};
+
+class MyFood : public antgui::Food {
+    Point p;
+    int count;
+public:
+    MyFood(Point p, int count) : p(p), count(count) {
+    }
+    void setPoint(Point p1) {
+        p = p1;
+    }
+    void setCount(int c) {
+        count = c;
+    }
+
+		virtual Point getPoint() const {
+        return p;
+    }
+		virtual int getCount() const {
+        return count;
     }
 };
 
@@ -141,6 +152,8 @@ class AntManager {
     map<Point, Cell> field;
     Point hillPos[4];
 
+    list<MyFood> food;
+
     antgui::IAntGui *gui;
 
     struct sens {
@@ -149,7 +162,7 @@ class AntManager {
 
     void processAction(AntAction& action, MyAnt *ant);
     void processMovement(Point p, Point p1, MyAnt *ant);
-    void processBiting(Point p1);
+    void processBiting(Point p1, MyAnt *ant);
     sens getSensors(Point p, int tId);
     void redraw();
 public:
@@ -157,7 +170,7 @@ public:
     void setGui(antgui::IAntGui *gui_);
     void setFoodGeneretor(antgui::food_iterator *it);
 
-    AntManager(int height, int width, int teamCount, int maxAntCountPerTeam=20);
+    AntManager(int height, int width, int teamCount, int maxAntCountPerTeam=50);
 };
 
 #endif

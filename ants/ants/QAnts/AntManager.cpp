@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <unistd.h>
 
 AntSensor Cell::toAntSensor(int tId) {
     AntSensor tmp;
@@ -11,15 +10,20 @@ AntSensor Cell::toAntSensor(int tId) {
     tmp.smellIntensity = smellIntensity;
     if (isAnt) {
         map<int, MyAnt*>::iterator it = ants.begin();
+        tmp.isFriend = true;
         while (it != ants.end()) {
-            tmp.isFriend &= tId == it->second->getTeamId() ? true : false;
+            tmp.isFriend &= (tId == it->second->getTeamId() ? true : false);
             it++;
         }
         tmp.isEnemy = !tmp.isFriend;
+    } else {
+        tmp.isFriend = tmp.isEnemy = false;
     }
     if (isHill) {
         tmp.isMyHill = tId == teamId ? true : false;
         tmp.isEnemyHill = !tmp.isMyHill;
+    } else {
+        tmp.isMyHill = tmp.isEnemyHill = false;
     }
     tmp.isFood = isFood;
     tmp.isWall = isWall;
@@ -88,7 +92,6 @@ void AntManager::step(int num) {
     AntAction action;
 
     int i, j;
-
     for (i = 0; i < teamCount; i++) {
         for (j = 0; j < maxAntCountPerTeam; j++) {
             if (!ants[i][j]->isDrawn()) {
@@ -110,7 +113,6 @@ void AntManager::step(int num) {
         gui->SetTeamScore(i, score[i]);
         cout << "team: " << i << "; score: " << score[i] << "\n";
     }
-    usleep(100000);
 }
 
 void AntManager::processAction(AntAction& action, MyAnt *ant) {
@@ -120,22 +122,23 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
     if (action.putSmell) {
         field[p].smell = action.smell;
         field[p].smellIntensity = 101;
-        cout << "smell\n";
     }
 
     if (action.actionType == antlogic::GET && !ant->hasFood()) {
-        ant->setFood(*field[p].food.begin());
-        field[p].food.pop_front();
-        if (field[p].isHill)
-            score[field[p].teamId]--;
-        if (field[p].food.size() == 0)
-            field[p].isFood = false;
+        if (field[p].isFood) {
+            ant->setFood(true);
+            field[p].foodCnt--;
+            if (field[p].foodCnt == 0)
+                field[p].isFood = false;
+            if (field[p].isHill)
+                score[field[p].teamId]--;
+        }
     } else if (action.actionType == antlogic::PUT && ant->hasFood()) {
         if (field[p].isHill)
             score[field[p].teamId]++;
         field[p].isFood = true;
-        field[p].food.push_back(ant->getFood());
-        ant->setFood(0);
+        field[p].foodCnt++;
+        ant->setFood(false);
     } else if (action.actionType == antlogic::MOVE_UP) {
         p1.y++;
         processMovement(p, p1, ant);
@@ -149,43 +152,46 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
         p1.x--;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::BITE_UP) {
-        cout << "bite up\n";
         p1.y++;
-        processBiting(p1);
+        processBiting(p1, ant);
     } else if (action.actionType == antlogic::BITE_DOWN) {
-        cout << "bite down\n";
         p1.y--;
-        processBiting(p1);
+        processBiting(p1, ant);
     } else if (action.actionType == antlogic::BITE_RIGHT) {
-        cout << "bite right\n";
         p1.x++;
-        processBiting(p1);
+        processBiting(p1, ant);
     } else if (action.actionType == antlogic::BITE_LEFT) {
-        cout << "bite left\n";
         p1.x--;
-        processBiting(p1);
+        processBiting(p1, ant);
     } 
 }
 
-void AntManager::processBiting(Point p1) {
+void AntManager::processBiting(Point p1, MyAnt *ant) {
     if (field[p1].isWall)
         return;
+    if (p1.x < 0 || p1.y < 0) {
+        cerr << "FUUU\n";
+        exit(0);
+    }
     map<int, MyAnt*>::iterator it = field[p1].ants.begin(), pos = field[p1].ants.end();
     int min = 10, cnt;
+    int tId = ant->getTeamId();
     while (it != field[p1].ants.end()) {
-        cnt = it->second->getCount();
-        if (cnt < min) {
-            min = cnt;
-            pos = it;
+        if (it->second->getTeamId() != tId) {
+            cnt = it->second->getCount();
+            if (cnt < min) {
+                min = cnt;
+                pos = it;
+            }
         }
         it++;
     }
     if (pos != field[p1].ants.end()) {
         pos->second->freeze();
         if (pos->second->hasFood()) {
-            field[p1].food.push_back(pos->second->getFood());
+            field[p1].foodCnt++;
             field[p1].isFood = true;
-            pos->second->setFood(0);
+            pos->second->setFood(false);
         }
     }
 }
@@ -237,22 +243,23 @@ void AntManager::redraw() {
     map<Point, Cell>::iterator it = field.begin();
     gui->Clear();
     gui->BeginPaint();
+    food.clear();
     while (it != field.end()) {
-        if (it->second.smellIntensity)
+        if (it->second.smellIntensity) {
             it->second.smellIntensity--;
+            if (it->second.smellIntensity == 0)
+                it->second.smell = 0;
+        }
         if (it->second.isAnt) {
             map<int, MyAnt*>::iterator it1 = it->second.ants.begin();
             while (it1 != it->second.ants.end()) {
-                gui->SetAnt(it1->second);
                 it1->second->decCount();
+                gui->SetAnt(it1->second);
                 it1++;
             }
         } else if (it->second.isFood) {
-            list<Food*>::iterator ft = it->second.food.begin();
-            while (ft != it->second.food.end()) {
-                gui->SetFood(*ft);
-                ft++;
-            }
+            food.push_front(MyFood(it->first, it->second.foodCnt));
+            gui->SetFood(&(*food.begin()));
         }
         it++;
     }
@@ -265,14 +272,12 @@ void AntManager::setGui(antgui::IAntGui *gui_) {
 
 void AntManager::setFoodGeneretor(antgui::food_iterator *it) {
     antgui::food_iterator end, cur = *it;
-    antgui::ConcreteFood *f;
     Point p;
 
     while (cur != end) {
-        f = new antgui::ConcreteFood(*cur);
-        p = f->getPoint();
+        p = (*cur).getPoint();
 
-        field[p].food.push_back(f);
+        field[p].foodCnt = (*cur).getCount();
         field[p].isFood = true;
 
         cur++;

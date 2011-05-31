@@ -114,8 +114,8 @@ namespace antgui
 
 		virtual void Clear()
 		{
-            for_each(antMap.begin(), antMap.end(), deleteMap());
-            for_each(foodMap.begin(), foodMap.end(), deleteMap());
+    //        for_each(antMap.begin(), antMap.end(), deleteMap());
+     //       for_each(foodMap.begin(), foodMap.end(), deleteMap());
 			antMap.clear();
 			foodMap.clear();
 		}

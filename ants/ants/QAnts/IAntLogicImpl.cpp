@@ -409,6 +409,8 @@ namespace antlogic
 			    else if (gss(dat, u).isWall) go(dat, l);
 			    else {
 				    long s = x + 1 + y;
+            if (s == 0)
+                s = 1;
 				    if (rand() % s < x) go(dat, l);
 				    else go(dat, u);
 			    }

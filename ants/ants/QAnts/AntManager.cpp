@@ -12,10 +12,12 @@ AntSensor Cell::toAntSensor(int tId) {
         map<int, MyAnt*>::iterator it = ants.begin();
         tmp.isFriend = true;
         while (it != ants.end()) {
-            tmp.isFriend &= (tId == it->second->getTeamId() ? true : false);
+            if (tId == it->second->getTeamId())
+                tmp.isFriend = true;
+            else
+                tmp.isEnemy = true;;
             it++;
         }
-        tmp.isEnemy = !tmp.isFriend;
     } else {
         tmp.isFriend = tmp.isEnemy = false;
     }
@@ -125,11 +127,11 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
     }
 
     if (action.actionType == antlogic::GET && !ant->hasFood()) {
+        if (field[p].foodCnt <= 0)
+            field[p].isFood = false;
         if (field[p].isFood) {
             ant->setFood(true);
             field[p].foodCnt--;
-            if (field[p].foodCnt == 0)
-                field[p].isFood = false;
             if (field[p].isHill)
                 score[field[p].teamId]--;
         }
@@ -140,10 +142,10 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
         field[p].foodCnt++;
         ant->setFood(false);
     } else if (action.actionType == antlogic::MOVE_UP) {
-        p1.y++;
+        p1.y--;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::MOVE_DOWN) {
-        p1.y--;
+        p1.y++;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::MOVE_RIGHT) {
         p1.x++;
@@ -152,10 +154,10 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
         p1.x--;
         processMovement(p, p1, ant);
     } else if (action.actionType == antlogic::BITE_UP) {
-        p1.y++;
+        p1.y--;
         processBiting(p1, ant);
     } else if (action.actionType == antlogic::BITE_DOWN) {
-        p1.y--;
+        p1.y++;
         processBiting(p1, ant);
     } else if (action.actionType == antlogic::BITE_RIGHT) {
         p1.x++;
@@ -169,10 +171,6 @@ void AntManager::processAction(AntAction& action, MyAnt *ant) {
 void AntManager::processBiting(Point p1, MyAnt *ant) {
     if (field[p1].isWall)
         return;
-    if (p1.x < 0 || p1.y < 0) {
-        cerr << "FUUU\n";
-        exit(0);
-    }
     map<int, MyAnt*>::iterator it = field[p1].ants.begin(), pos = field[p1].ants.end();
     int min = 10, cnt;
     int tId = ant->getTeamId();
@@ -213,27 +211,27 @@ AntManager::sens AntManager::getSensors(Point p, int tId) {
     Point p1(p);
 
     p1.x = p.x - 1;
-    p1.y = p.y + 1;
+    p1.y = p.y - 1;
     s.sensors[0][0] = field[p1].toAntSensor(tId);
     p1.y = p.y;
-    s.sensors[1][0] = field[p1].toAntSensor(tId);
-    p1.y = p.y - 1;
-    s.sensors[2][0] = field[p1].toAntSensor(tId);
-
-    p1.x = p.x;
-    p1.y = p.y + 1;
     s.sensors[0][1] = field[p1].toAntSensor(tId);
-    p1.y = p.y;
-    s.sensors[1][1] = field[p1].toAntSensor(tId);
-    p1.y = p.y - 1;
-    s.sensors[2][1] = field[p1].toAntSensor(tId);
-
-    p1.x = p.x + 1;
     p1.y = p.y + 1;
     s.sensors[0][2] = field[p1].toAntSensor(tId);
-    p1.y = p.y;
-    s.sensors[1][2] = field[p1].toAntSensor(tId);
+
+    p1.x = p.x;
     p1.y = p.y - 1;
+    s.sensors[1][0] = field[p1].toAntSensor(tId);
+    p1.y = p.y;
+    s.sensors[1][1] = field[p1].toAntSensor(tId);
+    p1.y = p.y + 1;
+    s.sensors[1][2] = field[p1].toAntSensor(tId);
+
+    p1.x = p.x + 1;
+    p1.y = p.y - 1;
+    s.sensors[2][0] = field[p1].toAntSensor(tId);
+    p1.y = p.y;
+    s.sensors[2][1] = field[p1].toAntSensor(tId);
+    p1.y = p.y + 1;
     s.sensors[2][2] = field[p1].toAntSensor(tId);
 
     return s;

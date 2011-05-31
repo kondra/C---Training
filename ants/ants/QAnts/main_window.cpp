@@ -9,7 +9,7 @@
 #include <QTimer>
 
 main_window::main_window(QWidget *parent)
-  : QMainWindow(parent), step(0), manager(21, 21, 2)
+  : QMainWindow(parent), step(0), manager(21, 21, 2, 20)
 {
 	ui.setupUi(this);
 	QLabel *label1 = new QLabel("One");

@@ -61,7 +61,7 @@ namespace antgui
 			t *= fractal_den;
 			n++;
 		}
-		s.push(FuncParam(n, Point(size / 2, size / 2), 100, t));
+		s.push(FuncParam(n, Point(size / 2, size / 2), 20, t));
 	}
 
     ConcreteFood food_iterator::operator*()

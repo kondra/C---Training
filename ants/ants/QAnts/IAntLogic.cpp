@@ -11,8 +11,14 @@ namespace antlogic
 				return new AntLogicTeam01();
 				break;
 			case (/*Teams::*/Team02):
-				return new AntLogicTeam01();
+				return new AntLogicTeam02();
 				break;
+      case (2):
+        return new AntLogicTeam02();
+        break;
+      case (3):
+        return new AntLogicTeam01();
+        break;
 		}
 	}
 

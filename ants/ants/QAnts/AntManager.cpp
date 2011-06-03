@@ -15,7 +15,7 @@ AntSensor Cell::toAntSensor(int tId) {
             if (tId == it->second->getTeamId())
                 tmp.isFriend = true;
             else
-                tmp.isEnemy = true;;
+                tmp.isEnemy = true;
             it++;
         }
     } else {
